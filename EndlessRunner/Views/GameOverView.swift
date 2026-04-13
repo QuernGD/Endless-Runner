@@ -20,7 +20,7 @@ struct GameOverView: View {
 
                 VStack(spacing: 10) {
                     statRow(label: "Score", value: "\(score)")
-                    statRow(label: "Distance", value: "\(distance)")
+                    statRow(label: "Distance", value: "\(distance)m")
                     statRow(label: "Coins", value: "\(coins)")
                     statRow(label: "High Score", value: "\(highScore)",
                             color: .yellow)

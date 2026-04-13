@@ -35,17 +35,30 @@ enum GameConfig {
     static let fullBlockHeight: CGFloat = 120
     static let trainLength: CGFloat = 200
     static let minObstacleSpacing: CGFloat = 250
+    /// Additional spacing that gets subtracted as speed climbs (never go
+    /// below `minObstacleSpacing`).
+    static let maxObstacleSpacingBonus: CGFloat = 120
 
     // Coins
     static let coinRadius: CGFloat = 12
     static let coinValue: Int = 10
 
-    // Input
-    static let swipeThreshold: CGFloat = 30
+    // Input — a swipe is only registered once the touch has moved at least
+    // `swipeThreshold` points from its origin. Anything shorter is treated
+    // as a tap and triggers a jump (accessibility affordance).
+    static let swipeThreshold: CGFloat = 15
 
     // Ground
     static let groundHeight: CGFloat = 80
 
-    // Scoring
-    static let scorePerSecond: CGFloat = 10
+    // Difficulty timing (seconds since run start)
+    static let difficultyStageB: TimeInterval = 10
+    static let difficultyStageCD: TimeInterval = 30
+    static let difficultyStageE: TimeInterval = 60
+
+    // Feedback
+    /// Horizontal distance at which an obstacle counts as a "near miss".
+    static let nearMissDistance: CGFloat = 10
+    /// Screen shake magnitude on death.
+    static let deathShakeMagnitude: CGFloat = 18
 }

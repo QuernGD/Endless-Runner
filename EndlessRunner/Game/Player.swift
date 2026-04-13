@@ -50,13 +50,21 @@ final class Player: SKSpriteNode {
         let target = max(0, min(GameConfig.laneCount - 1, currentLane + direction))
         guard target != currentLane else { return }
         currentLane = target
+
+        // Tilt into the swipe, then straighten.
+        let tiltAngle: CGFloat = direction > 0 ? -0.25 : 0.25
+        let tilt = SKAction.rotate(toAngle: tiltAngle, duration: 0.08)
+        let straight = SKAction.rotate(toAngle: 0, duration: 0.1)
+        straight.timingMode = .easeOut
+        removeAction(forKey: "tilt")
+        run(SKAction.sequence([tilt, straight]), withKey: "tilt")
+
         // For jumping, the custom action recomputes y from the current lane
         // every frame, so we only need to tween y when running or sliding.
         if state == .jumping { return }
 
         let targetY: CGFloat
         if state == .sliding {
-            // Keep the slide vertical offset (-delta).
             let delta = (baseSize.height - GameConfig.playerSlideHeight) / 2
             targetY = laneConfig.yForLane(target) - delta
         } else {
@@ -76,6 +84,18 @@ final class Player: SKSpriteNode {
         state = .jumping
         removeAction(forKey: "laneSwitch")
 
+        // Squash on launch, stretch at peak, squash on landing.
+        let squashLaunch = SKAction.scaleX(to: 1.25, y: 0.8, duration: 0.08)
+        let stretch = SKAction.scaleX(to: 0.85, y: 1.2, duration: 0.16)
+        let holdStretch = SKAction.scaleX(to: 0.85, y: 1.2, duration: 0.1)
+        let squashLand = SKAction.scaleX(to: 1.2, y: 0.85, duration: 0.1)
+        let settle = SKAction.scale(to: 1.0, duration: 0.08)
+        let scaleSequence = SKAction.sequence([
+            squashLaunch, stretch, holdStretch, squashLand, settle
+        ])
+        removeAction(forKey: "squash")
+        run(scaleSequence, withKey: "squash")
+
         let total = GameConfig.jumpDuration
         let jumpAction = SKAction.customAction(withDuration: total) { [weak self] node, elapsed in
             guard let self else { return }
@@ -89,6 +109,8 @@ final class Player: SKSpriteNode {
             if self.state == .jumping {
                 self.state = .running
                 self.position.y = self.laneConfig.yForLane(self.currentLane)
+                self.xScale = 1.0
+                self.yScale = 1.0
             }
         }
         removeAction(forKey: "jump")
@@ -101,7 +123,7 @@ final class Player: SKSpriteNode {
         guard state == .running else { return }
         state = .sliding
 
-        let shrunken = CGSize(width: baseSize.width,
+        let shrunken = CGSize(width: baseSize.width * 1.15,
                               height: GameConfig.playerSlideHeight)
         let delta = (baseSize.height - shrunken.height) / 2
         self.size = shrunken
@@ -125,6 +147,8 @@ final class Player: SKSpriteNode {
         removeAction(forKey: "jump")
         removeAction(forKey: "slide")
         removeAction(forKey: "laneSwitch")
+        removeAction(forKey: "squash")
+        removeAction(forKey: "tilt")
         let tilt = SKAction.rotate(toAngle: -.pi / 4, duration: 0.2)
         let fade = SKAction.fadeAlpha(to: 0.5, duration: 0.2)
         run(SKAction.group([tilt, fade]))
